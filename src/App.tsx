@@ -49,6 +49,29 @@ import ApproveAuditorQualification from './pages/AuditorSubmit/ApproveAuditorQua
 import AuditorInformation from './pages/Auditor/AuditorInformation';
 import ZonalHeadViewList from './pages/AuditorSubmit/ZonalHeadViewList';
 import AuditorLogin from './pages/Auditor/AuditorLogin';
+import Validation from './pages/Auditor/Validation';
+import Validationt from './pages/Auditor/validationt';
+import Validation1 from './pages/Auditor/Validation1';
+import CodeComponent from './pages/Auditor/CodeComponent';
+import CodeComponent2 from './pages/Auditor/CodeComponent2';
+import UploadDocs from './pages/Auditor/UploadDocs';
+import Validation2 from './pages/Auditor/Validation2';
+import Upgradation from './pages/Auditor/Upgradation';
+import Upgradation1 from './pages/Auditor/Upgradation1';
+import Upgradation2 from './pages/Auditor/Upgradation2';
+import Upgradation3 from './pages/Auditor/Upgradation3';
+import Upgradation4 from './pages/Auditor/Upgradation4';
+import Upgradation5 from './pages/Auditor/Upgradation5';
+import Enhancement1 from './pages/Auditor/Enhancement1';
+import Enhancement2 from './pages/Auditor/Enhancement2';
+import Enhancement3 from './pages/Auditor/Enhancement3';
+import ApplicationForm134 from './pages/ApplicationForm134';
+import Application10 from './pages/Application10';
+import Application9 from './pages/Application9';
+import Application149 from './pages/Application149';
+import ApplicationFood from './pages/ApplicationFood';
+import ApplicationInfo from './pages/ApplicationInfo';
+
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const { pathname } = useLocation();
@@ -498,6 +521,238 @@ function App() {
             </>
           }
         />
+
+        <Route
+          path="/validation"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Validation />
+            </>
+          }
+        />
+        <Route
+          path="/validationt"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Validationt />
+            </>
+          }
+        />
+
+        <Route
+          path="/view/:id"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <CodeComponent />
+            </>
+          }
+        />
+        <Route
+          path="/views/:id"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <CodeComponent2 />
+            </>
+          }
+        />
+
+        <Route
+          path="/validation1"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Validation1 />
+            </>
+          }
+        />
+
+        <Route
+          path="/upload"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <UploadDocs />
+            </>
+          }
+        />
+        <Route
+          path="/validation2"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Validation2 />
+            </>
+          }
+        />
+        <Route
+          path="/Upgradation"
+          element={
+            <>
+              <PageTitle title="Upgradation| TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation />
+            </>
+          }
+        />
+
+        <Route
+          path="/Upgradation1"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation1 />
+            </>
+          }
+        />
+
+        <Route
+          path="/Upgradation2"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation2 />
+            </>
+          }
+        />
+
+        <Route
+          path="/Upgradation3"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation3 />
+            </>
+          }
+        />
+
+        <Route
+          path="/Upgradation4"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation4 />
+            </>
+          }
+        />
+
+        <Route
+          path="/Upgradation5"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Upgradation5 />
+            </>
+          }
+        />
+
+        <Route
+          path="/Enhancement1"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Enhancement1 />
+            </>
+          }
+        />
+        <Route
+          path="/Enhancement2"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Enhancement2 />
+            </>
+          }
+        />
+        <Route
+          path="/Enhancement3"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Enhancement3 />
+            </>
+          }
+        />
+
+        <Route
+          path="/ApplicationForm134"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <ApplicationForm134 />
+            </>
+          }
+        />
+        <Route
+          path="/Application10"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Application10 />
+            </>
+          }
+        />
+        <Route
+          path="/Application9"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Application9 />
+            </>
+          }
+        />
+        <Route
+          path="/Application149"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Application149 />
+            </>
+          }
+        />
+        <Route
+          path="/ApplicationFood"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <ApplicationFood />
+            </>
+          }
+        />
+        <Route
+          path="/ApplicationInfo"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <ApplicationInfo />
+            </>
+          }
+        />
+
         <Route
           path="/auditorLogin"
           element={

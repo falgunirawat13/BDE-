@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import FormControl from 'react-bootstrap/FormControl';
@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import 'react-datepicker/dist/react-datepicker.css';
 import DatePicker from 'react-datepicker';
 import axios from 'axios';
+import SubmittedData from '../AuditorSubmit/SubmittedBiodata';
 
 const BiodataInfo = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ const BiodataInfo = () => {
     address: '',
     educationDetails: '',
     languages: '',
+    languagesProficiency: '',
     expertise: '',
     city: '',
     state: '',
@@ -56,9 +58,40 @@ const BiodataInfo = () => {
     numberOfTrainings: '',
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    console.log('file ka data', file);
+    if (file) {
+      setSelectedFile(file);
+      setFormData((prevData) => ({
+        ...prevData,
+        uploadFile: file,
+      }));
+      console.log(file);
+    }
+  };
+
+  // Add selected file to the list and update formData
+  const handleAddToSelection = () => {
+    if (selectedFile) {
+      setSelectedFiles((prevFiles) => [...prevFiles, selectedFile]);
+      setFormData((prevData) => ({
+        ...prevData,
+        uploadFile: selectedFile,
+      }));
+      setSelectedFile(null); // Clear selected file after adding
+    }
+  };
+  const handleDelete = (index) => {
+    const updatedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updatedFiles);
+  };
   useEffect(() => {
     axios
-      .get('http://localhost:8000/api/auditor-qualifications')
+      .get('http://localhost:8000/api/auditor/auditorLanguage')
       .then((response) => {
         setFormData(response.data);
       })
@@ -67,20 +100,11 @@ const BiodataInfo = () => {
       );
   }, []);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleNacecodeChange = (event) => {
-    const { value } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      nacecode: value,
-    }));
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleriskCategoryChange = (event) => {
@@ -91,51 +115,88 @@ const BiodataInfo = () => {
     }));
   };
 
-  // const token = localStorage.getItem('token');
-  // const config = {
-  //   headers: {
-  //     Authorization: `Bearer ${token}`,
-  //   },
-  // };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    try {
+      if (
+        !formData.applyFor ||
+        !formData.title ||
+        !formData.documentType ||
+        !formData.industry ||
+        !formData.isPartOfIRS ||
+        !formData.isPartOfISSPL ||
+        !formData.standard ||
+        !formData.zone
+      ) {
+        console.log(formData.applyFor, '1');
+        console.log(formData.title, '2');
+        console.log(formData.documentType, '3');
+        console.log(formData.industry, '4');
+        console.log(formData.isPartOfIRS, '5');
+        console.log(formData.isPartOfISSPL, '6');
+        console.log(formData.standard, '7');
+        console.log(formData.zone, '8');
+        console.log(formData.qualificationCriteria, '9');
+        console.log(formData.country, '10');
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent default form submission behavior
-    axios
-      .post('http://localhost:8000/api/auditor/auditors', formData)
-      .then((response) => {
-        console.log('Form submitted successfully:', response.data);
-        // Optionally show a success message or redirect
-      })
-      .catch((error) => {
-        console.error('Error submitting form:', error);
-        // Optionally show an error message
-      });
+        alert('some csv file are not selected.');
+        return;
+      }
+
+      const response = await axios.post(
+        'http://localhost:8000/api/auditor/auditors',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      console.log('AUDITOR BIO DATA API RESPONSE', response);
+      console.log(formData.uploadFile, 'AADDDSASSS');
+    } catch (error) {
+      console.log(error, 'AUDITOR BIO DATA API ERROR RESPONSE');
+    }
   };
+
   const [applyForOptions, setApplyForOptions] = useState([]);
+  const [selectDocumentType, setSelectDocumentType] = useState([]);
   const [standardOptions, setStandardOptions] = useState([]);
-  const [zoneOptions, setZoneOptions] = useState([]); // Initialize as an empty array
+  const [efCodesOptions, setEfCodesOptions] = useState([]);
+  const [naceCodeRev1Options, setNaceCodeRev1Options] = useState([]);
+  const [naceCodeRev2Options, setNaceCodeRev2Options] = useState([]);
+  const [zoneOptions, setZoneOptions] = useState([]);
   const [titleOptions, setTitleOptions] = useState([]);
-  const [isPartOfISSPL, setIsPartOfISSPL] = useState([]);
-  const [isPartOfIRS, setIsPartOfIRS] = useState([]);
+  const [selectIsPartOfISSPL, setSelectIsPartOfISSPL] = useState([]);
+  const [selectIsPartOfIRS, setSelectIsPartOfIRS] = useState([]);
   const [qualificationCriteria, setQualificationCriteria] = useState([]);
-  const [industry, setIndustry] = useState([]);
+  const [selectIndustry, setSelectIndustry] = useState([]);
   const [languages, setLanguages] = useState([]);
+  const [languagesProficiency, setLanguagesProficiency] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [
-          applyForResponse,
+          applyForOptions,
+          selectDocumentType,
           standardResponse,
           zoneResponse,
           titleResponse,
-          issplResponse,
-          irsResponse,
-          qualificationCriteriaResponse,
-          industryResponse,
-          languageResponse,
+          selectIsPartOfISSPL,
+          selectIsPartOfIRS,
+          qualificationCriteria,
+          selectIndustry,
+          languages,
+          languagesProficiency,
+          efCodesResponse,
+          naceCodeRev1Response,
+          naceCodeRev2Response,
         ] = await Promise.all([
           axios.get('http://localhost:8000/api/auditor/auditorApplyFors'),
+          axios.get('http://localhost:8000/api/auditor/auditorDocumentTypes'),
           axios.get('http://localhost:8000/api/auditor/auditorStandards'),
           axios.get('http://localhost:8000/api/questionnaire/zone'),
           axios.get('http://localhost:8000/api/auditor/auditorTitles'),
@@ -146,9 +207,15 @@ const BiodataInfo = () => {
           ),
           axios.get('http://localhost:8000/api/auditor/auditorIndustry'),
           axios.get('http://localhost:8000/api/auditor/auditorLanuage'),
+          axios.get(
+            'http://localhost:8000/api/auditor/auditorLanuageProficiency',
+          ),
+          axios.get('http://localhost:8000/api/auditor/auditorIAFCodes'),
+          axios.get('http://localhost:8000/api/auditor/naceCodeRev1'),
+          axios.get('http://localhost:8000/api/auditor/auditorNaceRev2'),
         ]);
-
-        setApplyForOptions(applyForResponse.data);
+        setApplyForOptions(applyForOptions.data);
+        setSelectDocumentType(selectDocumentType.data);
         setStandardOptions(standardResponse.data);
         if (zoneResponse.data.success) {
           setZoneOptions(zoneResponse.data.data);
@@ -156,11 +223,15 @@ const BiodataInfo = () => {
           console.error('Failed to fetch zone options:', zoneResponse.data);
         }
         setTitleOptions(titleResponse.data);
-        setIsPartOfISSPL(issplResponse.data);
-        setIsPartOfIRS(irsResponse.data);
-        setQualificationCriteria(qualificationCriteriaResponse.data);
-        setIndustry(industryResponse.data);
-        setLanguages(languageResponse.data);
+        setSelectIsPartOfISSPL(selectIsPartOfISSPL.data);
+        setSelectIsPartOfIRS(selectIsPartOfIRS.data);
+        setQualificationCriteria(qualificationCriteria.data);
+        setSelectIndustry(selectIndustry.data);
+        setLanguages(languages.data);
+        setLanguagesProficiency(languagesProficiency.data);
+        setEfCodesOptions(efCodesResponse.data);
+        setNaceCodeRev1Options(naceCodeRev1Response.data);
+        setNaceCodeRev2Options(naceCodeRev2Response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -169,46 +240,198 @@ const BiodataInfo = () => {
     fetchData();
   }, []);
 
-  const [, setUsers] = useState([]); // State to hold user data
-  const [, setFilteredUsers] = useState([]); // State for filtered user data
   const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedOption, setSelectedOption] = useState('');
 
-  const handleSelectChange = (event: {
-    target: { value: React.SetStateAction<string> };
-  }) => {
-    setSelectedOption(event.target.value);
+  const [workExperiences, setWorkExperiences] = useState([
+    {
+      workExperienceYears: '',
+      organizationName: '',
+      organizationBusinessLine: '',
+      tenure: '',
+      rolesResponsibilities: '',
+    },
+  ]);
+
+  const [consultancyExperiences, setConsultancyExperiences] = useState([
+    {
+      yearsInConsultancy: '',
+      consultancySector: '',
+      numberOfClients: '',
+    },
+  ]);
+
+  const [trainingExperiences, setTrainingExperiences] = useState([
+    {
+      yearsInTraining: '',
+      trainingSector: '',
+      numberOfTrainings: '',
+    },
+  ]);
+
+  const [auditingExperiences, setAuditingExperiences] = useState([
+    {
+      yearsInAuditing: '',
+      auditedSector: '',
+      numberOfMandays: '',
+    },
+  ]);
+
+  const handleAddExperience = () => {
+    setWorkExperiences([
+      ...workExperiences,
+      {
+        workExperienceYears: '',
+        organizationName: '',
+        organizationBusinessLine: '',
+        tenure: '',
+        rolesResponsibilities: '',
+      },
+    ]);
   };
-  useEffect(() => {
-    const staticUsers = [
-      {
-        id: 1,
-        auditType: 'Internal',
-        standard: 'ISO 9001',
-        mandays: 5,
-        naceCode1: '1234',
-        naceCode2: '5678',
-        iafCode: '01',
-        risk: 'Low',
-        subCategory: 'Category A',
-      },
-      {
-        id: 2,
-        auditType: 'External',
-        standard: 'ISO 14001',
-        mandays: 7,
-        naceCode1: '2345',
-        naceCode2: '6789',
-        iafCode: '02',
-        risk: 'High',
-        subCategory: 'Category B',
-      },
-      // Add more static users as needed
-    ];
 
-    setUsers(staticUsers);
-    setFilteredUsers(staticUsers);
-  }, []);
+  const handleInputChange = (index, field, value) => {
+    // Update workExperiences
+    const updatedExperiences = [...workExperiences];
+    updatedExperiences[index][field] = value;
+    setWorkExperiences(updatedExperiences);
+
+    // Update SubmittedData based on field
+    if (field === 'workExperienceYears') {
+      setFormData((prevData) => ({
+        ...prevData,
+        workExperienceYears: value,
+      }));
+    } else if (field === 'organizationName') {
+      setFormData((prevData) => ({
+        ...prevData,
+        organizationName: value,
+      }));
+    } else if (field === 'organizationBusinessLine') {
+      setFormData((prevData) => ({
+        ...prevData,
+        organizationBusinessLine: value,
+      }));
+    } else if (field === 'tenure') {
+      setFormData((prevData) => ({
+        ...prevData,
+        tenure: value,
+      }));
+    } else if (field === 'rolesResponsibilities') {
+      setFormData((prevData) => ({
+        ...prevData,
+        rolesResponsibilities: value,
+      }));
+    }
+  };
+
+  const handleAddConsultancy = () => {
+    setConsultancyExperiences([
+      ...consultancyExperiences,
+      {
+        yearsConsultancy: '',
+        consultancySector: '',
+        numberOfClients: '',
+      },
+    ]);
+  };
+
+  const handleConsultancyInputChange = (index, field, value) => {
+    // Update consultancyExperiences
+    const updatedExperiences = [...consultancyExperiences];
+    updatedExperiences[index][field] = value;
+    setConsultancyExperiences(updatedExperiences);
+
+    // Update SubmittedData based on field
+    if (field === 'yearsInConsultancy') {
+      setFormData((prevData) => ({
+        ...prevData,
+        yearsInConsultancy: value,
+      }));
+    } else if (field === 'consultancySector') {
+      setFormData((prevData) => ({
+        ...prevData,
+        consultancySector: value,
+      }));
+    } else if (field === 'numberOfClients') {
+      setFormData((prevData) => ({
+        ...prevData,
+        numberOfClients: value,
+      }));
+    }
+  };
+
+  const handleAddTraining = () => {
+    setTrainingExperiences([
+      ...trainingExperiences,
+      {
+        yearsInTraining: '',
+        trainingSector: '',
+        numberOfTrainings: '',
+      },
+    ]);
+  };
+
+  const handleTrainingInputChange = (index, field, value) => {
+    // Update trainingExperiences
+    const updatedExperiences = [...trainingExperiences];
+    updatedExperiences[index][field] = value;
+    setTrainingExperiences(updatedExperiences);
+
+    // Update SubmittedData based on field
+    if (field === 'yearsInTraining') {
+      setFormData((prevData) => ({
+        ...prevData,
+        yearsInTraining: value,
+      }));
+    } else if (field === 'trainingSector') {
+      setFormData((prevData) => ({
+        ...prevData,
+        trainingSector: value,
+      }));
+    } else if (field === 'numberOfTrainings') {
+      setFormData((prevData) => ({
+        ...prevData,
+        numberOfTrainings: value,
+      }));
+    }
+  };
+
+  // Auditing Handlers
+  const handleAddAuditing = () => {
+    setAuditingExperiences([
+      ...auditingExperiences,
+      {
+        yearsInAuditing: '',
+        auditedSector: '',
+        numberOfMandays: '',
+      },
+    ]);
+  };
+
+  const handleAuditingInputChange = (index, field, value) => {
+    // Update auditingExperiences
+    const updatedAuditings = [...auditingExperiences];
+    updatedAuditings[index][field] = value;
+    setAuditingExperiences(updatedAuditings);
+
+    // Update formData based on the field
+    if (field === 'yearsInAuditing') {
+      setFormData((prevData) => ({
+        ...prevData,
+        yearsInAuditing: value,
+      }));
+    } else if (field === 'auditedSector') {
+      setFormData((prevData) => ({
+        ...prevData,
+        auditedSector: value,
+      }));
+    } else if (field === 'numberOfMandays') {
+      setFormData((prevData) => ({
+        ...prevData,
+        numberOfMandays: value,
+      }));
+    }
+  };
 
   const [visibleSections, setVisibleSections] = useState({
     workExperience: false,
@@ -224,17 +447,16 @@ const BiodataInfo = () => {
       [section]: !prevState[section],
     }));
   };
-  console.log(formData.zone);
-  console.log(formData.name, 'ABC');
-  console.log(formData);
+
+  // console.log(formData);
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-black mb-4">
-        Auditor Biodata Information
-      </h1>
       {/* Main Container for Fields */}
       <form onSubmit={handleSubmit}>
+        <h1 className="text-3xl font-bold text-black mb-4">
+          Auditor Biodata Information
+        </h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
           {/* Field: Apply For */}
           <div className="flex flex-col">
@@ -253,37 +475,12 @@ const BiodataInfo = () => {
             >
               <option>Select</option>
               {applyForOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {' '}
-                  {/* Assuming each option has an id */}
-                  {option.name}{' '}
-                  {/* Adjust based on the actual structure of the option */}
+                <option key={option.id} value={option.name}>
+                  {option.name}
                 </option>
               ))}
             </Form.Select>
           </div>
-
-          {/* <div className="flex flex-col">
-            <label htmlFor="standard" className="font-medium text-black mb-1">
-              Standard
-            </label>
-            <Form.Select
-              name="standard"
-              value={formData.standard}
-              onChange={handleChange}
-              className="mt-2"
-            >
-              <option value="">Select</option>
-              {standardOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {' '}
-                 Assuming each option has an id 
-                  {option.name}{' '}
-                   Adjust based on the actual structure of the option 
-                </option>
-              ))}
-            </Form.Select>
-          </div> */}
 
           <div className="flex flex-col">
             <label
@@ -327,7 +524,7 @@ const BiodataInfo = () => {
             >
               <option value="">Select</option>
               {titleOptions.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
@@ -368,12 +565,6 @@ const BiodataInfo = () => {
               className="border rounded-lg w-[100%] p-2"
               placeholderText="Select"
             />
-            {/* <Form.Control
-            id="birthDate"
-            type="date"
-            className="border rounded-lg"
-            aria-label="Date of Birth"
-          /> */}
           </div>
 
           {/* Field: Is part of ISSPL? */}
@@ -386,13 +577,14 @@ const BiodataInfo = () => {
             </label>
             <Form.Select
               aria-label="Select ISSPL Status"
-              name="title"
+              className="mt-2"
+              name="isPartOfISSPL"
               value={formData.isPartOfISSPL}
               onChange={handleChange}
             >
               <option value="">Select</option>
-              {isPartOfISSPL.map((option) => (
-                <option key={option.id} value={option.id}>
+              {selectIsPartOfISSPL.map((option) => (
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
@@ -409,13 +601,14 @@ const BiodataInfo = () => {
             </label>
             <Form.Select
               aria-label="Select IRS Status"
-              className=""
+              className="mt-2"
+              name="isPartOfIRS"
               value={formData.isPartOfIRS}
               onChange={handleChange}
             >
               <option value="">Select</option>
-              {isPartOfIRS.map((option) => (
-                <option key={option.id} value={option.id}>
+              {selectIsPartOfIRS.map((option) => (
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
@@ -430,6 +623,9 @@ const BiodataInfo = () => {
               Expertise
             </label>
             <Form.Control
+              name="expertise"
+              value={formData.expertise}
+              onChange={handleChange}
               as="textarea"
               aria-label="Address"
               className="p-2 border rounded-lg resize-none"
@@ -446,47 +642,17 @@ const BiodataInfo = () => {
               Address
             </label>
             <Form.Control
+              name="address"
               as="textarea"
               aria-label="Address"
               className="p-2 border rounded-lg resize-none"
               rows={1}
               placeholder="Address"
+              value={formData.address}
+              onChange={handleChange}
             />
           </div>
         </div>
-        {/* Address Field */}
-        {/* <div className="flex">
-          <div className="flex flex-col  mt-3 w-1/3 mr-2">
-            <label
-              htmlFor="address"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Expertise
-            </label>
-            <Form.Control
-              as="textarea"
-              aria-label="Address"
-              className="p-2 border rounded-lg resize-none"
-              rows={1}
-              placeholder="Expertise"
-            />
-          </div>
-          <div className="flex flex-col  mt-3 w-1/3">
-            <label
-              htmlFor="address"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Address
-            </label>
-            <Form.Control
-              as="textarea"
-              aria-label="Address"
-              className="p-2 border rounded-lg resize-none"
-              rows={1}
-              placeholder="Address"
-            />
-          </div>
-        </div> */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
           <div className="flex flex-col">
             <label
@@ -496,11 +662,14 @@ const BiodataInfo = () => {
               City
             </label>
             <Form.Control
-              id="name"
-              type="text"
-              className="border rounded-lg"
-              aria-label="Text Field Name"
-              placeholder="City"
+              name="city"
+              as="textarea"
+              aria-label="city"
+              className="p-2 border rounded-lg resize-none"
+              rows={1}
+              placeholder="city"
+              value={formData.city}
+              onChange={handleChange}
             />
           </div>
           <div className="flex flex-col">
@@ -511,11 +680,13 @@ const BiodataInfo = () => {
               State
             </label>
             <Form.Control
-              id="name"
+              name="state"
               type="text"
               className="border rounded-lg"
               aria-label="Text Field Name"
               placeholder="State"
+              value={formData.state}
+              onChange={handleChange}
             />
           </div>
           <div className="flex flex-col">
@@ -526,11 +697,13 @@ const BiodataInfo = () => {
               Pin code
             </label>
             <Form.Control
-              id="name"
+              name="pinCode"
               type="text"
               className="border rounded-lg"
               aria-label="Text Field Name"
               placeholder="Pin code"
+              value={formData.pinCode}
+              onChange={handleChange}
             />
           </div>
           <div className="flex flex-col">
@@ -541,47 +714,77 @@ const BiodataInfo = () => {
               Country
             </label>
             <Form.Control
-              id="name"
+              name="country"
               type="text"
               className="border rounded-lg"
               aria-label="Text Field Name"
-              placeholder="Country"
+              placeholder="country"
+              value={formData.country}
+              onChange={handleChange}
             />
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-3">
-          <div className="flex flex-col  ">
+        <div className="flex flex-row gap-4 mt-4">
+          <div className="flex flex-col w-1/2">
             <label
-              htmlFor="address"
+              htmlFor="title"
+              className="font-medium text-black dark:text-white mb-1"
+            >
+              Language
+            </label>
+            <Form.Select
+              aria-label="Select Title"
+              className=""
+              name="languages"
+              value={formData.languages}
+              onChange={handleChange}
+            >
+              <option>Select</option>
+              {languages.map((option) => (
+                <option key={option.id} value={option.name}>
+                  {option.name}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+          <div className="flex flex-col w-1/2">
+            <label
+              htmlFor="title"
+              className="font-medium text-black dark:text-white mb-1"
+            >
+              Language Proficiency
+            </label>
+            <Form.Select
+              aria-label="Select Title"
+              className=""
+              name="languagesProficiency"
+              value={formData.languagesProficiency}
+              onChange={handleChange}
+            >
+              <option>Select</option>
+              {languagesProficiency.map((option) => (
+                <option key={option.id} value={option.name}>
+                  {option.name}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+
+          <div className="flex flex-col w-1/2">
+            <label
+              htmlFor="educationDetails"
               className="font-medium text-black dark:text-white mb-1"
             >
               Educational Details
             </label>
             <Form.Control
-              id="name"
+              id="educationDetails"
               type="text"
               className="border rounded-lg"
-              aria-label="Text Field Name"
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col ">
-            <label
-              htmlFor="title"
-              className="font-medium text-black dark:text-white mb-1"
-              value={formData.languages}
+              placeholder="Enter your education details"
+              value={formData.educationDetails}
               onChange={handleChange}
-            >
-              Languages
-            </label>
-            <Form.Select aria-label="Select Title" className="">
-              <option>Select</option>
-              {languages.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.name}
-                </option>
-              ))}
-            </Form.Select>
+            />
           </div>
         </div>
         {/* Contact Information Section */}
@@ -598,11 +801,14 @@ const BiodataInfo = () => {
               Nationality
             </label>
             <Form.Control
-              id="nationality"
-              type="text"
-              className="border rounded-lg"
+              name="nationality"
+              as="textarea"
               aria-label="Nationality"
+              className="p-2 border rounded-lg resize-none"
+              rows={1}
               placeholder="Nationality"
+              value={formData.nationality}
+              onChange={handleChange}
             />
           </div>
 
@@ -615,11 +821,18 @@ const BiodataInfo = () => {
               Contact No.
             </label>
             <Form.Control
-              id="contactNo"
+              name="contactNo"
+              as="input"
               type="text"
-              className="border rounded-lg"
-              aria-label="Contact No."
-              placeholder="Contact No"
+              aria-label="contactNo"
+              className="p-2 border rounded-lg resize-none"
+              rows={1}
+              placeholder="contactNo"
+              value={formData.contactNo}
+              onChange={handleChange}
+              pattern="^\d{10}$"
+              maxLength="10"
+              title="Please enter exactly 10 digits"
             />
           </div>
 
@@ -632,11 +845,17 @@ const BiodataInfo = () => {
               Mobile No.
             </label>
             <Form.Control
-              id="mobileNo"
+              name="mobileNo"
+              as="input"
               type="text"
-              className="border rounded-lg"
-              aria-label="Mobile No."
+              aria-label="mobileNo"
+              className="p-2 border rounded-lg"
               placeholder="Mobile No"
+              value={formData.mobileNo}
+              onChange={handleChange}
+              pattern="^\d{10}$"
+              maxLength="10"
+              title="Please enter exactly 10 digits"
             />
           </div>
 
@@ -649,11 +868,14 @@ const BiodataInfo = () => {
               Fax No.
             </label>
             <Form.Control
-              id="faxNo"
-              type="text"
-              className="border rounded-lg"
-              aria-label="Fax No."
-              placeholder="Fax No"
+              name="faxNo"
+              as="textarea"
+              aria-label="faxNo"
+              className="p-2 border rounded-lg resize-none"
+              rows={1}
+              placeholder="faxNo"
+              value={formData.faxNo}
+              onChange={handleChange}
             />
           </div>
 
@@ -666,9 +888,12 @@ const BiodataInfo = () => {
               Email ID
             </label>
             <Form.Control
-              id="emailId"
-              type="email"
-              className="border rounded-lg"
+              name="emailID"
+              as="textarea"
+              className="p-2 border rounded-lg resize-none"
+              rows={1}
+              value={formData.emailID}
+              onChange={handleChange}
               aria-label="Email ID"
               placeholder="Email ID"
             />
@@ -684,7 +909,7 @@ const BiodataInfo = () => {
             </label>
             <Form.Control
               id=""
-              type="email"
+              type="text"
               className="border rounded-lg"
               aria-label="Email ID"
               placeholder="Enter"
@@ -699,7 +924,7 @@ const BiodataInfo = () => {
             </label>
             <Form.Control
               id=""
-              type="email"
+              type="text"
               className="border rounded-lg"
               aria-label="Email ID"
               placeholder="Enter"
@@ -714,7 +939,7 @@ const BiodataInfo = () => {
             </label>
             <Form.Control
               id=""
-              type="email"
+              type="text"
               className="border rounded-lg"
               aria-label="Email ID"
               placeholder="Enter"
@@ -767,25 +992,65 @@ const BiodataInfo = () => {
             : 'Add Work Experience'}
         </button>
         {visibleSections.workExperience && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
-            {[
-              'No. of years in work experience',
-              'Name of the organization',
-              "Organization's line of business",
-              'Tenure',
-              'Roles and responsibilities w.r.t. required competencies',
-            ].map((label, index) => (
-              <div key={index} className="flex flex-col">
-                <label className="font-medium text-black dark:text-white mb-1">
-                  {label}
-                </label>
-                <Form.Control
-                  type="text"
-                  className="border rounded-lg"
-                  placeholder="Enter"
-                />
+          <div>
+            {workExperiences.map((experience, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-4 mb-4"
+              >
+                <h3 className="font-bold text-black text-l dark:text-white mr-2 mt-2 mb-3">
+                  Work Experience {index + 1}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
+                  {[
+                    {
+                      label: 'No. of years in work experience',
+                      field: 'workExperienceYears',
+                    },
+                    {
+                      label: 'Name of the organization',
+                      field: 'organizationName',
+                    },
+                    {
+                      label: "Organization's line of business",
+                      field: 'organizationBusinessLine',
+                    },
+                    {
+                      label: 'Tenure',
+                      field: 'tenure',
+                    },
+                    {
+                      label:
+                        'Roles and responsibilities w.r.t. required competencies',
+                      field: 'rolesResponsibilities',
+                    },
+                  ].map(({ label, field }) => (
+                    <div key={field} className="flex flex-col">
+                      <label className="font-medium text-black dark:text-white mb-1">
+                        {label}
+                      </label>
+                      <Form.Control
+                        type="text"
+                        className="border rounded-lg"
+                        placeholder="Enter"
+                        value={experience[field]} // Bind the current value from state
+                        onChange={(e) =>
+                          handleInputChange(index, field, e.target.value)
+                        } // Handle input changes
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
+
+            <Button
+              className="flex justify-center rounded py-2 px-3 font-bold text-white mb-4"
+              style={{ backgroundColor: '#343a40', border: 'none' }}
+              onClick={handleAddExperience}
+            >
+              +
+            </Button>
           </div>
         )}
         <button
@@ -797,23 +1062,60 @@ const BiodataInfo = () => {
             : 'Add Consultancy Experience'}
         </button>
         {visibleSections.consultancy && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
-            {[
-              'Number of Years in Consultancy',
-              'Consultancy Provided in Sector',
-              'Number of Clients',
-            ].map((label, index) => (
-              <div key={index} className="flex flex-col mt-4">
-                <label className="font-medium text-black dark:text-white mb-1">
-                  {label}
-                </label>
-                <Form.Control
-                  type="text"
-                  className="border rounded-lg"
-                  placeholder="Enter"
-                />
+          <div>
+            {consultancyExperiences.map((experience, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-4 mb-4"
+              >
+                <h3 className="font-bold text-black text-l dark:text-white mr-2 mt-2 mb-3">
+                  Consultancy Experience {index + 1}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
+                  {[
+                    {
+                      label: 'No. of years in consultancy',
+                      field: 'yearsInConsultancy',
+                    },
+                    {
+                      label: 'Consultancy Provided in Sector',
+                      field: 'consultancySector',
+                    },
+                    {
+                      label: 'Number of Clients',
+                      field: 'numberOfClients',
+                    },
+                  ].map(({ label, field }) => (
+                    <div key={field} className="flex flex-col">
+                      <label className="font-medium text-black dark:text-white mb-1">
+                        {label}
+                      </label>
+                      <Form.Control
+                        type="text"
+                        className="border rounded-lg"
+                        placeholder="Enter"
+                        value={experience[field]} // Bind the current value from state
+                        onChange={(e) =>
+                          handleConsultancyInputChange(
+                            index,
+                            field,
+                            e.target.value,
+                          )
+                        } // Handle input changes
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
+
+            <Button
+              className="flex justify-center rounded py-2 px-3 font-bold text-white mb-4"
+              style={{ backgroundColor: '#343a40', border: 'none' }}
+              onClick={handleAddConsultancy}
+            >
+              +
+            </Button>
           </div>
         )}
         <button
@@ -825,23 +1127,60 @@ const BiodataInfo = () => {
             : 'Add Auditing Experience'}
         </button>
         {visibleSections.auditing && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
-            {[
-              'Number of Years in Auditing',
-              'Audited in Sector',
-              'Number of Mandays',
-            ].map((label, index) => (
-              <div key={index} className="flex flex-col mt-4">
-                <label className="font-medium text-black dark:text-white mb-1">
-                  {label}
-                </label>
-                <Form.Control
-                  type="text"
-                  className="border rounded-lg"
-                  placeholder="Enter"
-                />
+          <div>
+            {auditingExperiences.map((experience, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-4 mb-4"
+              >
+                <h3 className="font-bold text-black text-l dark:text-white mr-2 mt-2 mb-3">
+                  Auditing Experience {index + 1}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-1 mb-2">
+                  {[
+                    {
+                      label: 'Number of Years in Auditing',
+                      field: 'yearsInAuditing',
+                    },
+                    {
+                      label: 'Audited in Sector',
+                      field: 'auditedSector',
+                    },
+                    {
+                      label: 'Number of Mandays',
+                      field: 'numberOfMandays',
+                    },
+                  ].map(({ label, field }) => (
+                    <div key={field} className="flex flex-col">
+                      <label className="font-medium text-black dark:text-white mb-1">
+                        {label}
+                      </label>
+                      <Form.Control
+                        type="text"
+                        className="border rounded-lg"
+                        placeholder="Enter"
+                        value={experience[field]} // Bind the current value from state
+                        onChange={(e) =>
+                          handleAuditingInputChange(
+                            index,
+                            field,
+                            e.target.value,
+                          )
+                        } // Handle input changes
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
+
+            <Button
+              className="flex justify-center rounded py-2 px-3 font-bold text-white mb-4"
+              style={{ backgroundColor: '#343a40', border: 'none' }}
+              onClick={handleAddAuditing}
+            >
+              +
+            </Button>
           </div>
         )}
         <button
@@ -853,23 +1192,60 @@ const BiodataInfo = () => {
             : 'Add Training Experience'}
         </button>
         {visibleSections.training && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-1 mb-2">
-            {[
-              'No. of years in Training',
-              'Training imparted in Sector & on subject',
-              'Number of Trainings',
-            ].map((label, index) => (
-              <div key={index} className="flex flex-col mt-4">
-                <label className="font-medium text-black dark:text-white mb-1">
-                  {label}
-                </label>
-                <Form.Control
-                  type="text"
-                  className="border rounded-lg"
-                  placeholder="Enter"
-                />
+          <div>
+            {trainingExperiences.map((experience, index) => (
+              <div
+                key={index}
+                className="border border-gray-300 rounded-lg p-4 mb-4"
+              >
+                <h3 className="font-bold text-black text-l dark:text-white mr-2 mt-2 mb-3">
+                  Training Experience {index + 1}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-1 mb-2">
+                  {[
+                    {
+                      label: 'No. of years in Training',
+                      field: 'yearsInTraining',
+                    },
+                    {
+                      label: 'Training imparted in Sector & on subject',
+                      field: 'trainingSector',
+                    },
+                    {
+                      label: 'Number of Trainings',
+                      field: 'numberOfTrainings',
+                    },
+                  ].map(({ label, field }) => (
+                    <div key={field} className="flex flex-col">
+                      <label className="font-medium text-black dark:text-white mb-1">
+                        {label}
+                      </label>
+                      <Form.Control
+                        type="text"
+                        className="border rounded-lg"
+                        placeholder="Enter"
+                        value={experience[field]} // Bind the current value from state
+                        onChange={(e) =>
+                          handleTrainingInputChange(
+                            index,
+                            field,
+                            e.target.value,
+                          )
+                        } // Handle input changes
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
+
+            <Button
+              className="flex justify-center rounded py-2 px-3 font-bold text-white mb-4"
+              style={{ backgroundColor: '#343a40', border: 'none' }}
+              onClick={handleAddTraining}
+            >
+              +
+            </Button>
           </div>
         )}
         {/* Supported Documents Section */}
@@ -885,26 +1261,21 @@ const BiodataInfo = () => {
             >
               Documents Type
             </label>
-            <Form.Select aria-label="Select Document Type" className="mt-2">
+            <Form.Select
+              aria-label="Select Document Type"
+              className="mt-2"
+              name="documentType"
+              value={formData.documentType}
+              onChange={(e) =>
+                setFormData({ ...formData, documentType: e.target.value })
+              }
+            >
               <option>Select</option>
-              <option value="PDF">CV/Biodata/Resume</option>
-              <option value="Word">
-                Educational Qualification Certificates
-              </option>
-              <option value="Excel">Work Experience Letters</option>
-              <option value="Excel">
-                Professional Certificates(LA Certificates & Training
-                Certificates)
-              </option>
-              <option value="Excel">
-                Audit Logs/List of Audits conducted (This is mandatory for Team
-                Leaders / Auditor Status)
-              </option>
-              <option value="Excel">List of consultancy provided</option>
-              <option value="Excel">PAN Card</option>
-              <option value="Excel">AAdhar Card</option>
-              <option value="Excel">Government ID</option>
-              <option value="Excel">Cancelled Cheque</option>
+              {selectDocumentType.map((document) => (
+                <option key={document.id} value={document.name}>
+                  {document.name}
+                </option>
+              ))}
             </Form.Select>
           </div>
 
@@ -917,15 +1288,21 @@ const BiodataInfo = () => {
               Upload File
             </label>
             <input
+              name="uploadFile"
               type="file"
               id="fileUpload"
               className="border rounded-lg p-1 mt-2 bg-white"
               aria-label="File Upload"
+              onChange={handleFileChange}
             />
           </div>
         </div>
         <div className="flex flex-row justify-start items-end mt-2">
-          <Button variant="primary" className="mb-2 bg-[#152238]">
+          <Button
+            variant="primary"
+            className="mb-2 bg-[#152238]"
+            onClick={handleAddToSelection}
+          >
             Add to Selection
           </Button>
         </div>
@@ -935,11 +1312,37 @@ const BiodataInfo = () => {
               <thead className="thead-light">
                 <tr>
                   <th className="py-2 px-4">File Type</th>
-                  <th className="py-2 px-4">File Name </th>
+                  <th className="py-2 px-4">File Name</th>
                   <th className="py-2 px-4">View</th>
                   <th className="py-2 px-4">Delete</th>
                 </tr>
               </thead>
+              <tbody>
+                {selectedFiles.map((file, index) => (
+                  <tr key={index}>
+                    <td className="py-2 px-4">{file.type}</td>
+                    <td className="py-2 px-4">{file.name}</td>
+                    <td className="py-2 px-4">
+                      {/* View button, possibly link to file */}
+                      <Button
+                        variant="link"
+                        className="bg-dark text-white border rounded-md shadow-md"
+                      >
+                        View
+                      </Button>
+                    </td>
+                    <td className="py-2 px-4">
+                      {/* Delete button */}
+                      <Button
+                        className="bg-dark text-white border rounded-md shadow-md"
+                        onClick={() => handleDelete(index)}
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </Table>
           </div>
         </div>
@@ -947,19 +1350,20 @@ const BiodataInfo = () => {
           {/* Field: Qualification Criteria */}
           <div className="flex flex-col">
             <label
-              htmlFor="applyFor"
+              htmlFor="otherQualifications"
               className="font-medium text-black dark:text-white mb-1"
             >
               Qualification Criteria
             </label>
             <Form.Select
-              aria-label="Select Title"
+              aria-label="Select Qualification Criteria"
+              name="qualificationCriteria"
               value={formData.qualificationCriteria}
               onChange={handleChange}
             >
               <option value="">Select</option>
               {qualificationCriteria.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
@@ -976,12 +1380,13 @@ const BiodataInfo = () => {
             </label>
             <Form.Select
               aria-label="Select Standard"
+              name="industry"
               value={formData.industry}
               onChange={handleChange}
             >
               <option>Select</option>
-              {industry.map((option) => (
-                <option key={option.id} value={option.id}>
+              {selectIndustry.map((option) => (
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
@@ -1001,305 +1406,18 @@ const BiodataInfo = () => {
               value={formData.standard}
               onChange={(e) => {
                 handleChange(e);
-                console.log('Selected Standard:', e.target.value); // Log the selected standard
               }}
             >
               <option value="">Select</option>
               {standardOptions.map((option) => (
-                <option key={option.id} value={option.id}>
+                <option key={option.id} value={option.name}>
                   {option.name}
                 </option>
               ))}
             </Form.Select>
-
-            {/* Logging to understand the value */}
-            {console.log(
-              'Current formData.standard:',
-              typeof formData.standard,
-            )}
           </div>
         </div>
-        {/* Conditional Rendering for NACE codes */}
-        {(formData.standard === '20' ||
-          formData.standard === '13' ||
-          formData.standard === '36' ||
-          formData.standard === '62' ||
-          formData.standard === '11' ||
-          formData.standard === '54') && (
-          <div className="w-full mt-4">
-            {' '}
-            {/* Full width for NACE codes section */}
-            <h2 className="font-bold text-black text-xl dark:text-white mb-3">
-              Select Nacecodes
-            </h2>
-            <div className="flex justify-between mb-4">
-              {' '}
-              {/* Add flex container */}
-              <div className="flex flex-col w-1/2 pr-2">
-                <label
-                  htmlFor="nacecodesRev1"
-                  className="font-medium text-black dark:text-white mb-1"
-                >
-                  Select Nacecodes (Rev1)
-                </label>
-                <Form.Select
-                  aria-label="Select Application Type"
-                  className="mt-2"
-                >
-                  <option>Select</option>
-                  <option value="E 40.11">
-                    E 40.11 (Production of electricity)
-                  </option>
-                  <option value="O 93.01">
-                    O 93.01 (Washing and dry cleaning of textile and fur
-                    products)
-                  </option>
-                  {/* Add more options */}
-                </Form.Select>
-              </div>
-              <div className="flex flex-col w-1/2 pl-2">
-                <label
-                  htmlFor="nacecodesRev2"
-                  className="font-medium text-black dark:text-white mb-1"
-                >
-                  Select Nacecodes (Rev2)
-                </label>
-                <Form.Select
-                  aria-label="Select Application Type"
-                  value={formData.nacecode}
-                  onChange={handleNacecodeChange} // Custom handler to update selected Nacecode
-                  className="mt-2"
-                >
-                  <option>Select</option>
-                  <option value="Technical Area">Technical Area</option>
-                  <option value="81.22">
-                    81.22 (Other building and industrial cleaning activities)
-                  </option>
-                  {/* Add more options */}
-                </Form.Select>
-              </div>
-            </div>
-            {/* Conditionally render the table when "Technical Area" is selected */}
-            {formData.nacecode === 'Technical Area' &&
-              formData.standard === '20' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Select Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>IAF/EA Code(s)</th>
-                        <th>NACE Rev2</th>
-                        <th>QMS-Risk</th>
-                        <th>Key Process involved</th>
-                        <th>Quality Control</th>
-                        <th>Product Requirement</th>
-                        <th>Applicable legal & statutory requirements</th>
-                        <th> Link with Question Bank (Google Form)</th>
-                        <th>Upload the Answer-sheet</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-            {formData.nacecode === 'Technical Area' &&
-              formData.standard === '13' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Select Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>IAF/EA Code(s)</th>
-                        <th>NACE Rev2</th>
-                        <th>QMS-Risk</th>
-                        <th>Key Process involved</th>
-                        <th>Quality Control</th>
-                        <th>Product Requirement</th>
-                        <th>Applicable legal & statutory requirements</th>
-                        <th> Link with Question Bank (Google Form)</th>
-                        <th>Upload the Answer-sheet</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-            {formData.nacecode === 'Technical Area' &&
-              (formData.standard === '62' || formData.standard === '11') && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Select Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Main Technical Area for SCSMS / SRSMS</th>
-                        <th>Sub-Technical Area SCSMS / SRSMS</th>
-                        <th>Supply Chain related experience</th>
-                        <th>
-                          Link with Competence Matrix Form No. 81 (Google Form)
-                        </th>
-                        <th>Submit the Duly filled Form No. 81</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-            {formData.nacecode === 'Technical Area' &&
-              formData.standard === '54' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Select Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Master Technical Area for EOMS</th>
-                        <th>Processes involved</th>
-                        <th>Competence required</th>
-                        <th>
-                          Legal / accreditation requirement [Legal Requirements
-                          & Admission Process(s), as applicable]
-                        </th>
-                        <th>Process of Monitoring</th>
-                        <th>
-                          Link with Competence Matrix Form No. 128 (Google Form)
-                        </th>
-                        <th>Submission the Duly filled Form No. 128</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-            {formData.nacecode === 'Technical Area' &&
-              formData.standard === '36' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    This screen should be reflected as
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th rowSpan="2">Main Technical Area (MTA)</th>
-                        <th rowSpan="2">Sub Technical Area (STA)</th>
-                        <th colSpan="2">PRODUCT RELATED KNOWLEDGE</th>
-                        <th colSpan="2">PROCESS RELATED KNOWLEDGE</th>
-                      </tr>
-                      <tr>
-                        <th>
-                          List out few Products and services related to this
-                          technical area
-                        </th>
-                        <th>
-                          List at least 3 examples of typical
-                          defects/non-conformances in this Technical Area
-                        </th>
-                        <th>
-                          List at least 3 main critical processes in this
-                          Technical Area and briefly describe one process
-                        </th>
-                        <th>
-                          List at least 3 main critical processes in this
-                          Technical Area and briefly describe one process
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <select>
-                            <option value="">Drop Down for Selection</option>
-                            <option value="MTA1">Main Technical Area 1</option>
-                            <option value="MTA2">Main Technical Area 2</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select>
-                            <option value="">Drop Down for Selection</option>
-                            <option value="STA1">Sub Technical Area 1</option>
-                            <option value="STA2">Sub Technical Area 2</option>
-                          </select>
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            placeholder="Box for Type the Details"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            placeholder="Box for Type the Details"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            placeholder="Box for Type the Details"
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            placeholder="Box for Type the Details"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-          </div>
-        )}
-        {formData.standard === '21' && (
+        {formData.standard === 'ISO 14001:2015' && (
           <div className="mt-4">
             <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
               Generic Knowledge About ISO 14001
@@ -1331,18 +1449,54 @@ const BiodataInfo = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
                 </tr>
               </tbody>
             </Table>
           </div>
         )}
-        {formData.standard === '22' && (
+        {formData.standard === ' ISO 45001:2018' && (
           <div className="mt-4">
             <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
               Generic Knowledge About ISO 45001
@@ -1374,21 +1528,60 @@ const BiodataInfo = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
-                  <td> </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
                 </tr>
               </tbody>
             </Table>
           </div>
         )}
-        {(formData.standard === '21' ||
-          formData.standard === '43' ||
-          formData.standard === '8' ||
-          formData.standard === '22') && (
+        {/*EAF Codes*/}
+        {(formData.standard === 'ISO 9001:2015' ||
+          formData.standard === 'IATF 16949:2016' ||
+          formData.standard === 'ISO 14001:2015' ||
+          formData.standard === 'ISO 50001:2018' ||
+          formData.standard === 'ISO 27001 : 2013' ||
+          formData.standard === ' ISO 45001:2018') && (
           <div className="w-full mt-4">
             <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
               Select EA/IAF Codes and Risk Category
@@ -1398,38 +1591,28 @@ const BiodataInfo = () => {
               {/* Add flex container */}
               <div className="flex flex-col w-1/2 pr-2">
                 <label
-                  htmlFor="applyFor"
-                  className="font-medium text-black dark:text-white mb-1"
+                  htmlFor="efCodes"
+                  className="font-medium text-black dark:text-white mb-1 mt-3"
                 >
-                  EA/IAF Codes
+                  EAF Code
                 </label>
                 <Form.Select
-                  aria-label="Select Application Type"
-                  className="mt-2"
+                  name="efCodes"
+                  value={formData.efCodes}
+                  onChange={handleChange}
                 >
-                  <option>Select</option>
-                  <option value="PDF">
-                    01(Agriculture & Fishing & Forestry)
-                  </option>
-                  <option value="PDF">02(Mining & Quarrying)</option>
-                  <option value="PDF">
-                    03(Food products , beverages and tobacco)
-                  </option>
-                  <option value="PDF">08(Publishing Companies)</option>
-                  <option value="PDF">09(Printing Companies)</option>
-                  <option value="PDF">18(Machienry and equipments)</option>
-                  <option value="PDF">
-                    19(Electrical and optical equipment)
-                  </option>
-                  <option value="PDF">20(Shipbuilding)</option>
-                  <option value="PDF">09(Aerospace)</option>
-                  <option value="PDF">09(Other transport equipment)</option>
+                  <option value="">Select</option>
+                  {efCodesOptions.map((option) => (
+                    <option key={option.id} value={option.name}>
+                      {option.name}
+                    </option>
+                  ))}
                 </Form.Select>
               </div>
               <div className="flex flex-col w-1/2 pl-2">
                 <label
-                  htmlFor="applyFor"
-                  className="font-medium text-black dark:text-white mb-1"
+                  htmlFor="riskCategory"
+                  className="font-medium text-black dark:text-white mb-1 mt-1"
                 >
                   Risk Category
                 </label>
@@ -1440,332 +1623,704 @@ const BiodataInfo = () => {
                   className="mt-2"
                 >
                   <option>Select</option>
-                  <option value="Technical Area">Technical Area</option>
+
                   {/* Add more options */}
                 </Form.Select>
               </div>
             </div>
 
-            {formData.riskCategory === 'Technical Area' &&
-              formData.standard === '21' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>IAF/EA Code(s)</th>
-                        <th>IAF/EA Code(s) Part Wise</th>
-                        <th>EMS-Risk</th>
-                        <th>Key Processes/Activities</th>
-                        <th>Sector Specific environmental aspects</th>
-                        <th>Sector Specific operational control</th>
-                        <th>Sector Specific environmental legal</th>
-                        <th>Applicable legal & statutory requirements</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
+            {formData.standard === 'ISO 9001:2015' && (
+              <div className="w-full mt-4">
+                {' '}
+                {/* Full width for NACE codes section */}
+                <h2 className="font-bold text-black text-xl dark:text-white mb-3">
+                  Select Nacecodes
+                </h2>
+                <div className="flex justify-between mb-4">
+                  {' '}
+                  {/* Add flex container */}
+                  <div className="flex flex-col w-1/2 pr-2">
+                    <label
+                      htmlFor="efCodes"
+                      className="font-medium text-black dark:text-white mb-1 mt-3"
+                    >
+                      Select Nacecodes (Rev 1)
+                    </label>
+                    <Form.Select
+                      name="naceCodeRev1"
+                      value={formData.naceCodeRev1}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select</option>
+                      {naceCodeRev1Options.map((option) => (
+                        <option key={option.id} value={option.name}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </div>
+                  <div className="flex flex-col w-1/2 pl-2">
+                    <label
+                      htmlFor="efCodes"
+                      className="font-medium text-black dark:text-white mb-1 mt-3"
+                    >
+                      Select Nacecodes (Rev 2)
+                    </label>
+                    <Form.Select
+                      name="naceCodeRev2"
+                      value={formData.naceCodeRev2}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select</option>
+                      {naceCodeRev2Options.map((option) => (
+                        <option key={option.id} value={option.name}>
+                          {option.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </div>
                 </div>
-              )}
+              </div>
+            )}
 
-            {formData.riskCategory === 'Technical Area' &&
-              formData.standard === '22' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>IAF/EA Code(s)</th>
-                        <th>IAF/EA Code(s) Part Wise</th>
-                        <th>OHS-Risk</th>
-                        <th>Key Processes/Activities/Services involved</th>
-                        <th>Sector Specific related hazards</th>
-                        <th>Sector Specific potential emergencies</th>
-                        <th>Sector Specific workplace monitoring</th>
-                        <th>Sector Specific OH&S Legal & Others</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
+            {formData.standard === 'ISO 9001:2015' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Select Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>IAF/EA Code(s)</th>
+                      <th>NACE Rev2</th>
+                      <th>QMS-Risk</th>
+                      <th>Key Process involved</th>
+                      <th>Quality Control</th>
+                      <th>Product Requirement</th>
+                      <th>Applicable legal & statutory requirements</th>
+                      <th> Link with Question Bank (Google Form)</th>
+                      <th>Upload the Answer-sheet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{formData.efCodes}</td>
+                      <td>{formData.naceCodeRev2}</td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
 
-            {formData.riskCategory === 'Technical Area' &&
-              formData.standard === '43' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Master Technical Area for EnMS</th>
-                        <th>Energy Related Experience</th>
-                        <th>Reflect the relevant Question Bank</th>
-                        <th>Submit the Answersheets</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <select>
-                            <option value="">Drop Down for Selection</option>
-                            <option value="MTA1">Main Technical Area 1</option>
-                            <option value="MTA2">Main Technical Area 2</option>
-                          </select>
-                        </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
+            {formData.standard === ' ISO 45001:2018' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>IAF/EA Code(s)</th>
+                      <th>IAF/EA Code(s) Part Wise</th>
+                      <th>OHS-Risk</th>
+                      <th>Key Processes/Activities/Services involved</th>
+                      <th>Sector Specific related hazards</th>
+                      <th>Sector Specific potential emergencies</th>
+                      <th>Sector Specific workplace monitoring</th>
+                      <th>Sector Specific OH&S Legal & Others</th>
+                      <th> Link with Question Bank (Google Form)</th>
+                      <th>Upload the Answer-sheet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td> </td>
+                      <td> </td>
+                      <td> </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
 
-            {formData.riskCategory === 'Technical Area' &&
-              formData.standard === '8' && (
-                <div className="mt-4">
-                  <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-                    Technical Area
-                  </h2>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>Sectors</th>
-                        <th>IAF / EA Code(s)</th>
-                        <th>IT related Experience</th>
-                        <th>Link with Question Bank (Google Form)</th>
-                        <th>Submit the Answersheets</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>
-                          <select>
-                            <option value="">Select Details</option>
-                            <option value="Detail1">Detail 1</option>
-                            <option value="Detail2">Detail 2</option>
-                            <option value="Detail3">Detail 3</option>
-                          </select>
-                        </td>{' '}
-                        <td>
-                          <select>
-                            <option value="">Select Details</option>
-                            <option value="Detail1">Detail 1</option>
-                            <option value="Detail2">Detail 2</option>
-                            <option value="Detail3">Detail 3</option>
-                          </select>
-                        </td>
-                        <td> </td>
-                        <td> </td>
-                        <td> </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                </div>
-              )}
+            {formData.standard === 'ISO 50001:2018' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Master Technical Area for EnMS</th>
+                      <th>Energy Related Experience</th>
+                      <th>Reflect the relevant Question Bank</th>
+                      <th>Submit the Answersheets</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <select>
+                          <option value="">Drop Down for Selection</option>
+                          <option value="MTA1">Main Technical Area 1</option>
+                          <option value="MTA2">Main Technical Area 2</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
+
+            {formData.standard === 'ISO 27001 : 2013' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Sectors</th>
+                      <th>IAF / EA Code(s)</th>
+                      <th>IT related Experience</th>
+                      <th>Link with Question Bank (Google Form)</th>
+                      <th>Submit the Answersheets</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <select>
+                          <option value="">Select Details</option>
+                          <option value="Detail1">Detail 1</option>
+                          <option value="Detail2">Detail 2</option>
+                          <option value="Detail3">Detail 3</option>
+                        </select>
+                      </td>{' '}
+                      <td>
+                        <select>
+                          <option value="">Select Details</option>
+                          <option value="Detail1">Detail 1</option>
+                          <option value="Detail2">Detail 2</option>
+                          <option value="Detail3">Detail 3</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
           </div>
         )}
-        {/* <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-          Select EA/IAF Codes and Risk Category
-        </h2> */}
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-3"> */}
-        {/* Field: Apply For */}
-        {/* <div className="flex flex-col">
-            <label
-              htmlFor="applyFor"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              EA/IAF Codes
-            </label>
-            <Form.Select aria-label="Select Application Type" className="mt-2">
-              <option>Select</option>
-              <option value="PDF">01(Agriculture & Fishing & Forestry)</option>
-              <option value="PDF">02(Mining & Quarrying)</option>
-              <option value="PDF">03(Food products , beverages and tobacco)</option>
-              <option value="PDF">08(Publishing Companies)</option>
-              <option value="PDF">09(Printing Companies)</option>
-              <option value="PDF">18(Machienry and equipments)</option>
-              <option value="PDF">19(Electrical and optical equipment)</option>
-              <option value="PDF">20(Shipbuilding)</option>
-              <option value="PDF">09(Aerospace)</option>
-              <option value="PDF">09(Other transport equipment)</option>
-            </Form.Select>
-          </div> */}
-        {/* <div className="flex flex-col">
-            <label
-              htmlFor="applyFor"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Risk Category
-            </label>
-            <Form.Select aria-label="Select Application Type" className="mt-2">
-              <option>Select</option>
-            </Form.Select>
+        {/* Conditional Rendering for NACE codes */}
+        {(formData.standard === 'IATF 16949:2016' ||
+          formData.standard === 'ISO 13485 : 2016' ||
+          formData.standard === 'ISO 28000 :2022' ||
+          formData.standard === 'ISO 28000 :2007' ||
+          formData.standard === 'ISO 21001:2018') && (
+          <div className="w-full mt-4">
+            {' '}
+            {/* Full width for NACE codes section */}
+            <h2 className="font-bold text-black text-xl dark:text-white mb-3">
+              Select Nacecodes
+            </h2>
+            <div className="flex justify-between mb-4">
+              {' '}
+              {/* Add flex container */}
+              <div className="flex flex-col w-1/2 pr-2">
+                <label
+                  htmlFor="efCodes"
+                  className="font-medium text-black dark:text-white mb-1 mt-3"
+                >
+                  Select Nacecodes (Rev 1)
+                </label>
+                <Form.Select
+                  name="naceCodeRev1"
+                  value={formData.naceCodeRev1}
+                  onChange={handleChange}
+                >
+                  <option value="">Select</option>
+                  {naceCodeRev1Options.map((option) => (
+                    <option key={option.id} value={option.name}>
+                      {option.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+              <div className="flex flex-col w-1/2 pl-2">
+                <label
+                  htmlFor="efCodes"
+                  className="font-medium text-black dark:text-white mb-1 mt-3"
+                >
+                  Select Nacecodes (Rev 2)
+                </label>
+                <Form.Select
+                  name="naceCodeRev2"
+                  value={formData.naceCodeRev2}
+                  onChange={handleChange}
+                >
+                  <option value="">Select</option>
+                  {naceCodeRev2Options.map((option) => (
+                    <option key={option.id} value={option.name}>
+                      {option.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+            </div>
+            {formData.standard === 'IATF 16949:2016' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Select Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>IAF/EA Code(s)</th>
+                      <th>NACE Rev2</th>
+                      <th>QMS-Risk</th>
+                      <th>Key Process involved</th>
+                      <th>Quality Control</th>
+                      <th>Product Requirement</th>
+                      <th>Applicable legal & statutory requirements</th>
+                      <th> Link with Question Bank (Google Form)</th>
+                      <th>Upload the Answer-sheet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{formData.efCodes}</td>
+                      <td>{formData.naceCodeRev2}</td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            {(formData.standard === 'ISO 28000 :2022' ||
+              formData.standard === 'ISO 28000 :2007') && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Select Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Main Technical Area for SCSMS / SRSMS</th>
+                      <th>Sub-Technical Area SCSMS / SRSMS</th>
+                      <th>Supply Chain related experience</th>
+                      <th>
+                        Link with Competence Matrix Form No. 81 (Google Form)
+                      </th>
+                      <th>Submit the Duly filled Form No. 81</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            {formData.standard === 'ISO 21001:2018' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Select Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>Master Technical Area for EOMS</th>
+                      <th>Processes involved</th>
+                      <th>Competence required</th>
+                      <th>
+                        Legal / accreditation requirement [Legal Requirements &
+                        Admission Process(s), as applicable]
+                      </th>
+                      <th>Process of Monitoring</th>
+                      <th>
+                        Link with Competence Matrix Form No. 128 (Google Form)
+                      </th>
+                      <th>Submission the Duly filled Form No. 128</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td> </td>
+                      <td> </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            {formData.standard === 'ISO 13485 : 2016' && (
+              <div className="mt-4">
+                <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+                  Technical Area
+                </h2>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th rowSpan="2">Main Technical Area (MTA)</th>
+                      <th rowSpan="2">Sub Technical Area (STA)</th>
+                      <th colSpan="2">PRODUCT RELATED KNOWLEDGE</th>
+                      <th colSpan="3">PROCESS RELATED KNOWLEDGE</th>
+                    </tr>
+                    <tr>
+                      <th>
+                        List out few Products and services related to this
+                        technical area
+                      </th>
+                      <th>
+                        List at least 3 examples of typical
+                        defects/non-conformances in this Technical Area
+                      </th>
+                      <th>
+                        List at least 3 main critical processes in this
+                        Technical Area and briefly describe one process
+                      </th>
+                      <th>
+                        Identify at least 3 critical control points/Key testing
+                        or measuring parameters from the above mentioned
+                        processes in this technical area
+                      </th>
+                      <th>
+                        List out possible externally provided processes,products
+                        and services used by the clients related to this
+                        technical area
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <select>
+                          <option value="">Drop Down for Selection</option>
+                          <option value="MTA1">Main Technical Area 1</option>
+                          <option value="MTA2">Main Technical Area 2</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select>
+                          <option value="">Drop Down for Selection</option>
+                          <option value="STA1">Sub Technical Area 1</option>
+                          <option value="STA2">Sub Technical Area 2</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>{' '}
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>{' '}
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>{' '}
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="Enter data"
+                          className="form-control"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            {/* Conditionally render the table when "Technical Area" is selected */}
           </div>
-        </div> */}
-        {/* <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-          Select Nacecodes
-        </h2> */}
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-3"> */}
-        {/* <div className="flex flex-col">
-            <label
-              htmlFor="applyFor"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Select Nacecodes(Rev1)
-            </label>
-            <Form.Select aria-label="Select Application Type" className="mt-2">
-              <option>Select</option>
-              <option value="PDF">E 40.11(Production of electricity)</option>
-              <option value="Word">O 93.01(Washing and dry cleaning of textile and fur products)</option>
-              <option value="Excel">O 93.02(Hair dressing and other beauty treatment)</option>
-              <option value="Excel">O 93.03(Funeral and related activities)</option>
-              <option value="Excel">O 93.04(Physical and well-being activities)</option>
-              <option value="Excel">O 93.05(Other services activities n.e.c)</option>
-              <option value="Excel">K 72.10(hardware Consultancy)</option>
-              <option value="Excel">K 72.21(Publishing of software)</option>
-              <option value="Excel">K 72.22(Other software consultancy and supply)</option>
-              <option value="Excel">K 72.3(Data processing)</option>
-              <option value="Excel">K 72.4(Database activities)</option>
-            </Form.Select>
-          </div> */}
-        {/* <div className="flex flex-col">
-      <label
-        htmlFor="applyFor"
-        className="font-medium text-black dark:text-white mb-1"
-      >
-        Select Nacecodes (Rev2)
-      </label> */}
-        {/* <Form.Select
-        aria-label="Select Application Type"
-        className="mt-2"
-        onChange={handleSelectChange}
-      >
-        <option value="">Select</option>
-        <option value="Technical Area">Technical Area</option>
-        <option value="PDF">81.22 (Other building and industrial cleaning activities)</option>
-        <option value="Word">81.29 (Other cleaning activities)</option>
-        <option value="Excel">81.3 (Landscape service activities)</option>
-        <option value="Excel">82.11 (Combined administrative services activities)</option>
-        <option value="Excel">82.19 (Photocopying, document preparation, and other specialized office support activities)</option>
-        <option value="Excel">82.2 (Activities of call centers)</option>
-        <option value="Excel">82.3 (Organizations of conventions and trade shows)</option>
-        <option value="Excel">82.91 (Activities of collection agencies and credit bureaus)</option>
-        <option value="Excel">82.92 (Packaging activities)</option>
-        <option value="Excel">82.99 (Other business support service activities n.e.c)</option>
-       
-      </Form.Select> */}
-        {/* Conditionally render the table when "Technical Area" is selected */}
-        {/* {selectedOption === 'Technical Area' && (
-        <div className="mt-4">
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>IAF/EA Code(s)</th>
-                <th>NACE Rev2</th>
-                <th>QMS-Risk</th>
-                <th>Key Process involved</th>
-                <th>Quality Control</th>
-                <th>Product Requirement</th>
-                <th>Applicable legal & statutory requirements</th>
-              
-              </tr>
-            </thead>
-           
-          </Table>
-        </div>
-      )}
-    </div>
-        </div> */}
-        {/* <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-          Select Category / Sub-Category Codes
-        </h2> */}
-        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-3">
-          <div className="flex flex-col">
-            <label
-              htmlFor="applyFor"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Category
-            </label>
-            <Form.Select aria-label="Select Application Type" className="mt-2">
-              <option>Select</option>
-              <option>Technical Area</option>
-              <option>D(Processing 2(Perishable vegetal products))</option>
-              <option>
-                E(Processing 3(Product with long shelf life at ambient
-                temperature))
-              </option>
-              <option>
-                C(Processing 1(Perishable animal products)including all
-                activities after farming e.g. slaughtering)
-              </option>
-              <option>F(Feed Production)</option>
-              <option>G(Catering)</option>
-              <option>H(Distribution)</option>
-              <option>I(Services)</option>
-              <option>J(Transport and storage)</option>
-              <option>K(Production of (Bio) Chemicals)</option>
-              <option>L((Bio)chemical manufacturing)</option>
-              <option>M(Packaging material manufacturing)</option>
-              <option>Ayurvedic(Ayurvedic)</option>
-
-              
-            </Form.Select>
-            {/* {selectedOption === 'Technical Area' && (
-              <Table striped bordered hover className="mt-4">
-                <thead>
-                  <tr>
-                    <th>Cluster</th>
-                    <th>Categories</th>
-                    <th>Subcategory</th>
-                    <th>IRQS Subcategory</th>
-                    <th>Risk</th>
-                  </tr>
-                </thead>
-                
-              </Table>
-            )} 
-          </div>*/}
-        {/* <div className="flex flex-col">
-            <label
-              htmlFor="applyFor"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Sub Category
-            </label>
-            <Form.Select aria-label="Select Application Type" className="mt-2">
-              <option>Select</option>
-            </Form.Select>
-          </div> 
-        </div> */}
+        )}
+        {formData.standard === 'ISO 14001:2015' && (
+          <div className="mt-4">
+            <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
+              Technical Area
+            </h2>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>IAF/EA Code(s)</th>
+                  <th>IAF/EA Code(s) Part Wise</th>
+                  <th>EMS-Risk</th>
+                  <th>Key Processes/Activities</th>
+                  <th>Sector Specific environmental aspects</th>
+                  <th>Sector Specific operational control</th>
+                  <th>Sector Specific environmental legal</th>
+                  <th>Applicable legal & statutory requirements</th>
+                  <th> Link with Question Bank (Google Form)</th>
+                  <th>Submit the Answer-sheet</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{formData.efCodes}</td>
+                  <td> </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>{' '}
+                  <td>
+                    <input
+                      type="text"
+                      placeholder="Enter data"
+                      className="form-control"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
+          </div>
+        )}
         {/* Buttons */}
         <div className="flex flex-row justify-end items-end mt-4 space-x-2">
           <button
@@ -1781,103 +2336,7 @@ const BiodataInfo = () => {
             Save Changes
           </button>
         </div>
-        <div>
-          {/* <h2 className="font-bold text-black text-xl dark:text-white mr-2 mt-3 mb-3">
-          General knowledge about ISO 14001
-        </h2>
-        <div>
-        <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              The Environmental Technology Used
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              About technniques involved for Evaluation of environmental aspect & imapct & theri significance
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Knowledge of Environmental Emergencies preparedness & response. Mitigation associated with adverse Environmental impact
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-              Knowledge of operational control with respect to
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-             For factors related to Geography,Climate,Hydrogeology,Topography,soil condition resulting in potential environmental impacts
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label
-              htmlFor="emailId"
-              className="font-medium text-black dark:text-white mb-1"
-            >
-            During Design stage: Approach/concept of application related environmental aspect/impact/life cycle
-            </label>
-            <Form.Control
-              id=""
-              type=""
-              className="border rounded-lg"
-              aria-label=""
-              placeholder="Enter"
-            />
-          </div>
-          </div> */}
-        </div>
+        <div></div>
       </form>
     </>
   );
