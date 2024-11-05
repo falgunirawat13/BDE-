@@ -189,8 +189,8 @@ const BiodataInfo = () => {
           selectIsPartOfIRS,
           qualificationCriteria,
           selectIndustry,
-          languageResponse,
-          languagesProficiencyResponse,
+          languages,
+          languagesProficiency,
           efCodesResponse,
           naceCodeRev1Response,
           naceCodeRev2Response,
@@ -210,7 +210,6 @@ const BiodataInfo = () => {
           axios.get(
             'http://localhost:8000/api/auditor/auditorLanuageProficiency',
           ),
-
           axios.get('http://localhost:8000/api/auditor/auditorIAFCodes'),
           axios.get('http://localhost:8000/api/auditor/naceCodeRev1'),
           axios.get('http://localhost:8000/api/auditor/auditorNaceRev2'),
@@ -228,8 +227,8 @@ const BiodataInfo = () => {
         setSelectIsPartOfIRS(selectIsPartOfIRS.data);
         setQualificationCriteria(qualificationCriteria.data);
         setSelectIndustry(selectIndustry.data);
-        setLanguages(languageResponse.data);
-        setLanguagesProficiency(languagesProficiencyResponse.data);
+        setLanguages(languages.data);
+        setLanguagesProficiency(languagesProficiency.data);
         setEfCodesOptions(efCodesResponse.data);
         setNaceCodeRev1Options(naceCodeRev1Response.data);
         setNaceCodeRev2Options(naceCodeRev2Response.data);
@@ -733,7 +732,13 @@ const BiodataInfo = () => {
             >
               Language
             </label>
-            <Form.Select aria-label="Select Title" className="">
+            <Form.Select
+              aria-label="Select Title"
+              className=""
+              name="languages"
+              value={formData.languages}
+              onChange={handleChange}
+            >
               <option>Select</option>
               {languages.map((option) => (
                 <option key={option.id} value={option.name}>
@@ -749,7 +754,13 @@ const BiodataInfo = () => {
             >
               Language Proficiency
             </label>
-            <Form.Select aria-label="Select Title" className="">
+            <Form.Select
+              aria-label="Select Title"
+              className=""
+              name="languagesProficiency"
+              value={formData.languagesProficiency}
+              onChange={handleChange}
+            >
               <option>Select</option>
               {languagesProficiency.map((option) => (
                 <option key={option.id} value={option.name}>

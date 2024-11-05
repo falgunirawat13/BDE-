@@ -50,8 +50,10 @@ import AuditorInformation from './pages/Auditor/AuditorInformation';
 import ZonalHeadViewList from './pages/AuditorSubmit/ZonalHeadViewList';
 import AuditorLogin from './pages/Auditor/AuditorLogin';
 import Validation from './pages/Auditor/Validation';
+import Validationt from './pages/Auditor/Validationt';
 import Validation1 from './pages/Auditor/Validation1';
 import CodeComponent from './pages/Auditor/CodeComponent';
+import CodeComponent2 from './pages/Auditor/CodeComponent2';
 import UploadDocs from './pages/Auditor/UploadDocs';
 import Validation2 from './pages/Auditor/Validation2';
 import Upgradation from './pages/Auditor/Upgradation';
@@ -530,6 +532,16 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/validationt"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <Validationt />
+            </>
+          }
+        />
 
         <Route
           path="/view/:id"
@@ -538,6 +550,16 @@ function App() {
               <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
 
               <CodeComponent />
+            </>
+          }
+        />
+        <Route
+          path="/views/:id"
+          element={
+            <>
+              <PageTitle title="Validation | TailAdmin - Tailwind CSS Admin Dashboard Template" />
+
+              <CodeComponent2 />
             </>
           }
         />

@@ -58,9 +58,6 @@ const CodeComponent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [qualificationCriteria, setQualificationCriteria] = useState([]);
-  const [industry, setIndustry] = useState([]);
-  const [standardOptions, setStandardOptions] = useState([]);
   const [formData, setFormData] = useState({
     qualificationCriteria: '',
     industry: '',
@@ -73,9 +70,7 @@ const CodeComponent = () => {
   const [reviewedBy, setReviewedBy] = useState('');
 
   const navigate = useNavigate();
-  const handleEditClick = () => {
-    setIsEditable(true);
-  };
+  const handleApproveClick = () => {};
   const handleCloseClick = () => {
     navigate('/validation');
   };
@@ -91,19 +86,6 @@ const CodeComponent = () => {
       console.log('API Response Data:', response.data);
       setSubmittedData(response.data.auditor);
       console.log('Sub', submittedData);
-
-      const [qualificationResponse, industryResponse, standardResponse] =
-        await Promise.all([
-          axios.get(
-            'http://localhost:8000/api/auditor/auditorQualificationCriteria',
-          ),
-          axios.get('http://localhost:8000/api/auditor/auditorIndustry'),
-          axios.get('http://localhost:8000/api/auditor/auditorStandards'),
-        ]);
-
-      setQualificationCriteria(qualificationResponse.data);
-      setIndustry(industryResponse.data);
-      setStandardOptions(standardResponse.data);
     } catch (error: any) {
       setError(error.message || 'Error fetching data');
     } finally {
@@ -159,7 +141,7 @@ const CodeComponent = () => {
   return (
     <>
       <h1 className="text-3xl font-bold text-black mb-4">
-        Review And Approval Of Registration
+        Approval Or Rejection Of Registration
       </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
         {/* Field: Apply For */}
@@ -603,28 +585,10 @@ const CodeComponent = () => {
             Qualification Criteria
           </label>
           <div className="p-2 border rounded-lg resize-none bg-white text-black">
-            <select
-              value={submittedData.qualificationCriteria}
-              disabled={!isEditable} // Dropdown is disabled when not in edit mode
-              onChange={(e) =>
-                setSubmittedData({
-                  ...submittedData,
-                  qualificationCriteria: e.target.value,
-                })
-              }
-              className={`w-full bg-transparent ${
-                isEditable ? 'cursor-pointer' : 'cursor-not-allowed'
-              }`}
-            >
-              {/* Default option */}
-              <option value="">Select</option>
-              {/* Dynamically map over industry options */}
-              {qualificationCriteria.map((option) => (
-                <option key={option.id} value={option.name}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-full">
+              {submittedData.qualificationCriteria ||
+                'No Qualification Criteria selected'}
+            </div>
           </div>
         </div>
         <div className="flex flex-col">
@@ -632,28 +596,9 @@ const CodeComponent = () => {
             Industry
           </label>
           <div className="p-2 border rounded-lg resize-none bg-white text-black">
-            <select
-              value={submittedData.industry}
-              disabled={!isEditable} // Dropdown is disabled when not in edit mode
-              onChange={(e) =>
-                setSubmittedData({
-                  ...submittedData,
-                  industry: e.target.value,
-                })
-              }
-              className={`w-full bg-transparent ${
-                isEditable ? 'cursor-pointer' : 'cursor-not-allowed'
-              }`}
-            >
-              {/* Default option */}
-              <option value="">Select</option>
-              {/* Dynamically map over industry options */}
-              {industry.map((option) => (
-                <option key={option.id} value={option.name}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-full">
+              {submittedData.industry || 'No industry selected'}
+            </div>
           </div>
         </div>
 
@@ -662,28 +607,9 @@ const CodeComponent = () => {
             Standard
           </label>
           <div className="p-2 border rounded-lg resize-none bg-white text-black">
-            <select
-              value={submittedData.standard}
-              disabled={!isEditable} // Dropdown is disabled when not in edit mode
-              onChange={(e) =>
-                setSubmittedData({
-                  ...submittedData,
-                  standard: e.target.value,
-                })
-              }
-              className={`w-full bg-transparent ${
-                isEditable ? 'cursor-pointer' : 'cursor-not-allowed'
-              }`}
-            >
-              {/* Default option */}
-              <option value="">Select</option>
-              {/* Dynamically map over industry options */}
-              {standardOptions.map((option) => (
-                <option key={option.id} value={option.name}>
-                  {option.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-full">
+              {submittedData.standard || 'No standard selected'}
+            </div>
           </div>
         </div>
       </div>
@@ -764,11 +690,11 @@ const CodeComponent = () => {
           </tbody>
         </Table>
       </div>
-      <h3 className="text-2xl font-semibold text-[#2D3748] mb-4 mt-4">
+      {/* <h3 className="text-2xl font-semibold text-[#2D3748] mb-4 mt-4">
         Support Documents Review
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-3">
-        {/* Field: Reviewal Status */}
+    
         <div className="flex flex-col">
           <label
             htmlFor="reviewalStatus"
@@ -788,7 +714,7 @@ const CodeComponent = () => {
           </Form.Select>
         </div>
 
-        {/* Field: Reviewed By */}
+       
         <div className="flex flex-col">
           <label
             htmlFor="reviewedBy"
@@ -822,32 +748,22 @@ const CodeComponent = () => {
           rows="2"
           placeholder="Remarks "
         ></textarea>
-      </div>
+      </div> */}
 
       <div className="flex justify-end space-x-3 p-4">
-        {!isEditable ? (
-          <button
-            className="bg-black text-white px-6 py-2 rounded-md shadow-md"
-            type="button"
-            onClick={handleEditClick}
-          >
-            Edit
-          </button>
-        ) : (
-          <button
-            className="bg-black text-white px-6 py-2 rounded-md shadow-md"
-            type="button"
-            onClick={handleSaveClick}
-          >
-            Save
-          </button>
-        )}
+        <Button
+          className="bg-black text-white px-6 py-2 rounded-md shadow-md"
+          type="button"
+          onClick={handleApproveClick}
+        >
+          Approve
+        </Button>
         <Button
           className="bg-white text-black border-black border px-6 py-2 rounded-md shadow-md"
           type="button"
           onClick={handleCloseClick}
         >
-          Close
+          Reject
         </Button>
       </div>
     </>

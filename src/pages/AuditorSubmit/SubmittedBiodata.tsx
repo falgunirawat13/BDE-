@@ -26,7 +26,8 @@ const SubmittedData = () => {
     faxNo: string;
     emailID: string;
     qualificationCriteria: string;
-    documents: { documentType: string; uploadFile: string }[];
+    documentType: string;
+    uploadFile: string;
     naceCodeRev1: string;
     naceCodeRev2: string;
     efCodes: string;
@@ -64,7 +65,7 @@ const SubmittedData = () => {
         }
         const data = await response.json();
         console.log('API Response Data:', data);
-        setSubmittedData(data.auditors[0]);
+        setSubmittedData(data.auditors[1]);
         console.log(submittedData);
       } catch (error: any) {
         setError(error.message || 'Error fetching data');
@@ -289,42 +290,40 @@ const SubmittedData = () => {
         Uploaded Documents
       </h3>
       <div className="bg-white shadow-md rounded-lg p-4 border border-[#2D3748] overflow-x-auto">
-        {submittedData?.documents && submittedData.documents.length > 0 ? (
-          <Table hover className="table-striped min-w-full">
-            <thead className="bg-[#F7FAFC] text-[#1A202C]">
-              <tr>
-                <th className="py-2 px-4 whitespace-nowrap">File Type</th>
-                <th className="py-2 px-4 whitespace-nowrap">File Name</th>
-                <th className="py-2 px-4 whitespace-nowrap">View</th>
-                <th className="py-2 px-4 whitespace-nowrap">Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submittedData.documents.map((doc, index) => (
-                <tr key={index}>
-                  <td className="py-2 px-4 text-[#4A5568]">
-                    {doc.documentType}
-                  </td>
-                  <td className="py-2 px-4 text-[#4A5568]">{doc.uploadFile}</td>
-                  <td className="py-2 px-4">
-                    <Button variant="link" className="text-[#3182CE]">
-                      View
-                    </Button>
-                  </td>
-                  <td className="py-2 px-4">
-                    <Button variant="link" className="text-[#E53E3E]">
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          <p className="text-center text-gray-500">No documents available.</p>
-        )}
+        <Table hover className="table-striped min-w-full">
+          <thead className="bg-[#F7FAFC] text-[#1A202C]">
+            <tr>
+              <th className="py-2 px-4 " style={{ width: '40%' }}>
+                File Type
+              </th>
+              <th className="py-3 px-4 " style={{ width: '40%' }}>
+                File Name
+              </th>
+              <th className="py-2 px-4 " style={{ width: '20%' }}>
+                View
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th className="py-2 px-" style={{ width: '40%' }}>
+                {submittedData.documentType}
+              </th>
+              <th className="py-3 px-4" style={{ width: '40%' }}>
+                {submittedData.uploadFile}
+              </th>
+              <th className="py-2 px-4 " style={{ width: '20%' }}>
+                <Button
+                  variant="link"
+                  className="bg-dark text-white border rounded-md shadow-md"
+                >
+                  View
+                </Button>
+              </th>
+            </tr>
+          </tbody>
+        </Table>
       </div>
-
       <h3 className="text-2xl font-semibold text-[#2D3748] mb-4 mt-5">
         Claimed NaceCodes and EAF/IAC Codes
       </h3>
